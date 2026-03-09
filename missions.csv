@@ -499,4 +499,3 @@ MSN-0497,Mission-497,2034-07-05,Asteroid,Betelgeuse,Exploration,0.35,4.1,379.71,
 MSN-0498,Mission-498,2034-07-12,Planet,Ceres,Exploration,47.6,26.6,296.45,98.6,29,100.0,4794.01,51.38,Falcon Heavy
 MSN-0499,Mission-499,2034-07-19,Planet,Betelgeuse,Research,31.99,18.0,457.38,77.9,39,100.0,3102.16,86.28,SLS
 MSN-0500,Mission-500,2034-07-26,Planet,Io,Exploration,43.41,23.5,449.4,45.4,88,100.0,4302.93,86.74,Falcon Heavy
-st.write(df.columns.tolist())
