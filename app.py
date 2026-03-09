@@ -126,8 +126,6 @@ if page == "Dashboard":
         else:
             st.info("Not enough numeric data to compute correlations.")
 
-    st.subheader("📊 Data Preview")
-    st.dataframe(filtered_df.head(20))
 
 # -------------------------------
 # Simulation Page
