@@ -10,28 +10,32 @@ import plotly.express as px
 @st.cache_data
 def load_data():
     df = pd.read_csv("missions.csv")
-st.write(df.columns.tolist())
 
-    # Convert Launch Date
-    df['Launch Date'] = pd.to_datetime(df['Launch Date'], errors='coerce')
+    # Show column names for debugging
+    st.write("Columns in dataset:", df.columns.tolist())
 
-    # Convert numeric columns
-    numeric_cols = ['Mission Cost', 'Payload Weight', 'Fuel Consumption',
-                    'Mission Duration', 'Distance from Earth', 'Crew Size', 'Scientific Yield']
+    # Convert Launch Date if present
+    if "Launch Date" in df.columns:
+        df["Launch Date"] = pd.to_datetime(df["Launch Date"], errors="coerce")
+
+    # Handle numeric columns safely
+    numeric_cols = [col for col in [
+        "Mission Cost", "Payload Weight", "Fuel Consumption",
+        "Mission Duration", "Distance from Earth", "Crew Size", "Scientific Yield"
+    ] if col in df.columns]
+
     for col in numeric_cols:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-
-    # Fill missing values
-    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
         df[col].fillna(df[col].median(), inplace=True)
-    df['Mission Type'].fillna("Unknown", inplace=True)
-    df['Launch Vehicle'].fillna("Unknown", inplace=True)
-    df['Mission Success'] = df['Mission Success'].fillna("Unknown").str.strip().str.lower()
 
-    # Remove duplicates and invalids
+    # Handle categorical columns safely
+    categorical_cols = [col for col in ["Mission Type", "Launch Vehicle", "Mission Success"] if col in df.columns]
+    for col in categorical_cols:
+        df[col] = df[col].fillna("Unknown")
+        df[col] = df[col].astype(str).str.strip().str.lower()
+
+    # Remove duplicates
     df.drop_duplicates(inplace=True)
-    df = df[df['Payload Weight'] >= 0]
-    df = df[df['Fuel Consumption'] >= 0]
 
     return df
 
@@ -45,41 +49,59 @@ st.write("Explore mission data: payloads, fuel, costs, crew, and outcomes.")
 
 # Sidebar filters
 st.sidebar.header("Filters")
-mission_type = st.sidebar.selectbox("Select Mission Type", df["Mission Type"].unique())
-vehicle = st.sidebar.selectbox("Select Launch Vehicle", df["Launch Vehicle"].unique())
+if "Mission Type" in df.columns:
+    mission_type = st.sidebar.selectbox("Select Mission Type", df["Mission Type"].unique())
+else:
+    mission_type = None
 
-filtered_df = df[(df["Mission Type"] == mission_type) & (df["Launch Vehicle"] == vehicle)]
+if "Launch Vehicle" in df.columns:
+    vehicle = st.sidebar.selectbox("Select Launch Vehicle", df["Launch Vehicle"].unique())
+else:
+    vehicle = None
+
+filtered_df = df.copy()
+if mission_type:
+    filtered_df = filtered_df[filtered_df["Mission Type"] == mission_type]
+if vehicle:
+    filtered_df = filtered_df[filtered_df["Launch Vehicle"] == vehicle]
 
 # -------------------------------
 # Visualizations
 # -------------------------------
+if "Payload Weight" in filtered_df.columns and "Fuel Consumption" in filtered_df.columns:
+    st.subheader("1. Payload vs Fuel Consumption")
+    fig1 = px.scatter(filtered_df, x="Payload Weight", y="Fuel Consumption",
+                      color="Mission Success" if "Mission Success" in filtered_df.columns else None,
+                      title="Payload vs Fuel Consumption")
+    st.plotly_chart(fig1)
 
-st.subheader("1. Payload vs Fuel Consumption")
-fig1 = px.scatter(filtered_df, x="Payload Weight", y="Fuel Consumption",
-                  color="Mission Success", title="Payload vs Fuel Consumption")
-st.plotly_chart(fig1)
+if "Mission Cost" in filtered_df.columns and "Mission Success" in filtered_df.columns:
+    st.subheader("2. Mission Cost: Success vs Failure")
+    fig2, ax2 = plt.subplots()
+    sns.barplot(x="Mission Success", y="Mission Cost", data=filtered_df, ax=ax2)
+    ax2.set_title("Mission Cost by Success/Failure")
+    st.pyplot(fig2)
 
-st.subheader("2. Mission Cost: Success vs Failure")
-fig2, ax2 = plt.subplots()
-sns.barplot(x="Mission Success", y="Mission Cost", data=filtered_df, ax=ax2)
-ax2.set_title("Mission Cost by Success/Failure")
-st.pyplot(fig2)
+if "Distance from Earth" in filtered_df.columns and "Mission Duration" in filtered_df.columns:
+    st.subheader("3. Mission Duration vs Distance from Earth")
+    fig3 = px.line(filtered_df, x="Distance from Earth", y="Mission Duration",
+                   color="Mission Success" if "Mission Success" in filtered_df.columns else None,
+                   title="Mission Duration vs Distance")
+    st.plotly_chart(fig3)
 
-st.subheader("3. Mission Duration vs Distance from Earth")
-fig3 = px.line(filtered_df, x="Distance from Earth", y="Mission Duration",
-               color="Mission Success", title="Mission Duration vs Distance")
-st.plotly_chart(fig3)
+if "Crew Size" in filtered_df.columns and "Mission Success" in filtered_df.columns:
+    st.subheader("4. Crew Size vs Mission Success")
+    fig4, ax4 = plt.subplots()
+    sns.boxplot(x="Mission Success", y="Crew Size", data=filtered_df, ax=ax4)
+    ax4.set_title("Crew Size vs Mission Success")
+    st.pyplot(fig4)
 
-st.subheader("4. Crew Size vs Mission Success")
-fig4, ax4 = plt.subplots()
-sns.boxplot(x="Mission Success", y="Crew Size", data=filtered_df, ax=ax4)
-ax4.set_title("Crew Size vs Mission Success")
-st.pyplot(fig4)
-
-st.subheader("5. Scientific Yield vs Mission Cost")
-fig5 = px.scatter(filtered_df, x="Mission Cost", y="Scientific Yield",
-                  color="Mission Success", title="Scientific Yield vs Mission Cost")
-st.plotly_chart(fig5)
+if "Mission Cost" in filtered_df.columns and "Scientific Yield" in filtered_df.columns:
+    st.subheader("5. Scientific Yield vs Mission Cost")
+    fig5 = px.scatter(filtered_df, x="Mission Cost", y="Scientific Yield",
+                      color="Mission Success" if "Mission Success" in filtered_df.columns else None,
+                      title="Scientific Yield vs Mission Cost")
+    st.plotly_chart(fig5)
 
 # -------------------------------
 # Data Preview
