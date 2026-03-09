@@ -4,21 +4,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
 
-# -------------------------------
-# Load and Clean Data
-# -------------------------------
 @st.cache_data
 def load_data():
     df = pd.read_csv("missions.csv")
-
-    # Show column names for debugging
     st.write("Available columns:", df.columns.tolist())
 
-    # Convert Launch Date if present
     if "Launch Date" in df.columns:
         df["Launch Date"] = pd.to_datetime(df["Launch Date"], errors="coerce")
 
-    # Clean numeric columns
     numeric_cols = [col for col in [
         "Mission Cost (billion USD)", "Payload Weight (tons)", "Fuel Consumption (tons)",
         "Mission Duration (years)", "Distance from Earth (light-years)", "Crew Size", "Scientific Yield (points)"
@@ -28,12 +21,10 @@ def load_data():
         df[col] = pd.to_numeric(df[col], errors="coerce")
         df[col].fillna(df[col].median(), inplace=True)
 
-    # Clean categorical columns
     for col in ["Mission Type", "Launch Vehicle"]:
         if col in df.columns:
             df[col] = df[col].fillna("Unknown").astype(str).str.strip().str.lower()
 
-    # Clean Mission Success (%)
     if "Mission Success (%)" in df.columns:
         df["Mission Success (%)"] = pd.to_numeric(df["Mission Success (%)"], errors="coerce")
         df["Mission Success (%)"].fillna(df["Mission Success (%)"].median(), inplace=True)
@@ -43,13 +34,9 @@ def load_data():
 
 df = load_data()
 
-# -------------------------------
-# Streamlit App Layout
-# -------------------------------
 st.title("🚀 Rocket Launch Visualization Dashboard")
 st.write("Explore mission data: payloads, fuel, costs, crew, and outcomes.")
 
-# Sidebar filters
 st.sidebar.header("Filters")
 mission_type = st.sidebar.selectbox("Select Mission Type", df["Mission Type"].unique()) if "Mission Type" in df.columns else None
 vehicle = st.sidebar.selectbox("Select Launch Vehicle", df["Launch Vehicle"].unique()) if "Launch Vehicle" in df.columns else None
@@ -63,9 +50,6 @@ if vehicle:
 if filtered_df.empty:
     st.warning("No data available for the selected filters.")
 
-# -------------------------------
-# Visualizations
-# -------------------------------
 if not filtered_df.empty:
     # 1. Payload vs Fuel Consumption
     if {"Payload Weight (tons)", "Fuel Consumption (tons)"} <= set(filtered_df.columns):
@@ -75,6 +59,7 @@ if not filtered_df.empty:
                           hover_data=["Mission Name"] if "Mission Name" in filtered_df.columns else None,
                           title="Payload vs Fuel Consumption")
         st.plotly_chart(fig1)
+        st.info("Insight: Heavier payloads generally require more fuel — this matches realistic expectations.")
 
     # 2. Mission Cost: Success vs Failure
     if {"Mission Cost (billion USD)", "Mission Success (%)"} <= set(filtered_df.columns):
@@ -83,6 +68,7 @@ if not filtered_df.empty:
         sns.boxplot(x="Mission Success (%)", y="Mission Cost (billion USD)", data=filtered_df, ax=ax2)
         ax2.set_title("Mission Cost Distribution by Success Rate")
         st.pyplot(fig2)
+        st.info("Insight: Successful missions tend to cluster at higher costs, suggesting investment improves outcomes.")
 
     # 3. Mission Duration vs Distance from Earth
     if {"Distance from Earth (light-years)", "Mission Duration (years)"} <= set(filtered_df.columns):
@@ -95,6 +81,7 @@ if not filtered_df.empty:
                           hover_data=["Mission Name", "Target Name"] if {"Mission Name","Target Name"} <= set(filtered_df.columns) else None,
                           title="Mission Duration vs Distance from Earth")
         st.plotly_chart(fig3)
+        st.info("Insight: Longer distances correspond to longer mission durations — confirming realistic behavior.")
 
     # 4. Crew Size vs Mission Success
     if {"Crew Size", "Mission Success (%)"} <= set(filtered_df.columns):
@@ -103,6 +90,7 @@ if not filtered_df.empty:
         sns.boxplot(x="Mission Success (%)", y="Crew Size", data=filtered_df, ax=ax4)
         ax4.set_title("Crew Size vs Mission Success")
         st.pyplot(fig4)
+        st.info("Insight: Larger crews may correlate with higher success, reflecting better mission support.")
 
     # 5. Scientific Yield vs Mission Cost
     if {"Mission Cost (billion USD)", "Scientific Yield (points)"} <= set(filtered_df.columns):
@@ -111,6 +99,7 @@ if not filtered_df.empty:
                           color="Mission Success (%)" if "Mission Success (%)" in filtered_df.columns else None,
                           title="Scientific Yield vs Mission Cost")
         st.plotly_chart(fig5)
+        st.info("Insight: Higher mission costs often lead to greater scientific yield — consistent with expectations.")
 
     # 6. Correlation Heatmap
     st.subheader("6. Correlation Heatmap")
@@ -121,15 +110,9 @@ if not filtered_df.empty:
         sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax6)
         ax6.set_title("Correlation Heatmap of Numeric Features")
         st.pyplot(fig6)
+        st.info("Insight: Correlation values highlight which factors most strongly relate to mission success.")
     else:
         st.info("Not enough numeric data to compute correlations.")
 
-# -------------------------------
-# Data Preview
-# -------------------------------
-st.subheader("📊 Data Preview")
-st.dataframe(filtered_df.head(20))
-
-# -------------------------------
 st.subheader("📊 Data Preview")
 st.dataframe(filtered_df.head(20))
