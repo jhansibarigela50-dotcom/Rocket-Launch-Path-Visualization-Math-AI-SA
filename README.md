@@ -6,7 +6,7 @@
 # Course Name: Mathematics for AI
 # School Name: Birla Open Minds International School
 
-App Link: https://rocket-launch-path-visualization-math-ai-sa-akuzqujhejatj4jubq.streamlit.app/
+**App Link:** https://rocket-launch-path-visualization-math-ai-sa-akuzqujhejatj4jubq.streamlit.app/
 
 **App Overview**
 
