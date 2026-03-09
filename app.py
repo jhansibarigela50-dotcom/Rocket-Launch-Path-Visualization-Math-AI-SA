@@ -10,7 +10,6 @@ import plotly.express as px
 @st.cache_data
 def load_data():
     df = pd.read_csv("missions.csv")
-    st.write("Available columns:", df.columns.tolist())
 
     if "Launch Date" in df.columns:
         df["Launch Date"] = pd.to_datetime(df["Launch Date"], errors="coerce")
