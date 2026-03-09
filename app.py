@@ -10,6 +10,7 @@ import plotly.express as px
 @st.cache_data
 def load_data():
     df = pd.read_csv("missions.csv")
+st.write(df.columns.tolist())
 
     # Convert Launch Date
     df['Launch Date'] = pd.to_datetime(df['Launch Date'], errors='coerce')
@@ -35,8 +36,6 @@ def load_data():
     return df
 
 df = load_data()
-st.write(df.columns.tolist())
-
 
 # -------------------------------
 # Streamlit App Layout
