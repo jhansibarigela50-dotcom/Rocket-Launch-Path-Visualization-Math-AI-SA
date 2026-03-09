@@ -93,7 +93,6 @@ if not filtered_df.empty:
                           color="Mission Success (%)" if "Mission Success (%)" in filtered_df.columns else None,
                           size="Crew Size" if "Crew Size" in filtered_df.columns else None,
                           hover_data=["Mission Name", "Target Name"] if {"Mission Name","Target Name"} <= set(filtered_df.columns) else None,
-                          trendline="ols",
                           title="Mission Duration vs Distance from Earth")
         st.plotly_chart(fig3)
 
@@ -110,7 +109,6 @@ if not filtered_df.empty:
         st.subheader("5. Scientific Yield vs Mission Cost")
         fig5 = px.scatter(filtered_df, x="Mission Cost (billion USD)", y="Scientific Yield (points)",
                           color="Mission Success (%)" if "Mission Success (%)" in filtered_df.columns else None,
-                          trendline="ols",
                           title="Scientific Yield vs Mission Cost")
         st.plotly_chart(fig5)
 
@@ -128,6 +126,10 @@ if not filtered_df.empty:
 
 # -------------------------------
 # Data Preview
+# -------------------------------
+st.subheader("📊 Data Preview")
+st.dataframe(filtered_df.head(20))
+
 # -------------------------------
 st.subheader("📊 Data Preview")
 st.dataframe(filtered_df.head(20))
