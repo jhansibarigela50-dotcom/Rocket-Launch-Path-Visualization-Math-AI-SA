@@ -14,10 +14,7 @@ def load_data():
     # Show column names for debugging
     st.write("Available columns:", df.columns.tolist())
 
-    # Rename columns for easier access
-    df.rename(columns=lambda x: x.strip(), inplace=True)
-
-    # Convert Launch Date
+    # Convert Launch Date if present
     if "Launch Date" in df.columns:
         df["Launch Date"] = pd.to_datetime(df["Launch Date"], errors="coerce")
 
@@ -86,15 +83,14 @@ if not filtered_df.empty:
 
     if {"Distance from Earth (light-years)", "Mission Duration (years)"} <= set(filtered_df.columns):
         st.subheader("3. Mission Duration vs Distance from Earth")
-         fig3 = px.scatter(filtered_df, 
-                  x="Distance from Earth (light-years)", 
-                  y="Mission Duration (years)",
-                  color="Mission Success (%)" if "Mission Success (%)" in filtered_df.columns else None,
-                  size="Crew Size" if "Crew Size" in filtered_df.columns else None,
-                  hover_data=["Mission Name"] if "Mission Name" in filtered_df.columns else None,
-                  title="Mission Duration vs Distance from Earth")
-st.plotly_chart(fig3)
-
+        fig3 = px.scatter(filtered_df,
+                          x="Distance from Earth (light-years)",
+                          y="Mission Duration (years)",
+                          color="Mission Success (%)" if "Mission Success (%)" in filtered_df.columns else None,
+                          size="Crew Size" if "Crew Size" in filtered_df.columns else None,
+                          hover_data=["Mission Name"] if "Mission Name" in filtered_df.columns else None,
+                          title="Mission Duration vs Distance from Earth")
+        st.plotly_chart(fig3)
 
     if {"Crew Size", "Mission Success (%)"} <= set(filtered_df.columns):
         st.subheader("4. Crew Size vs Mission Success")
@@ -111,6 +107,11 @@ st.plotly_chart(fig3)
         st.plotly_chart(fig5)
 
 # -------------------------------
+# Data Preview
+# -------------------------------
+st.subheader("📊 Data Preview")
+st.dataframe(filtered_df.head(20))
+
 # Data Preview
 # -------------------------------
 st.subheader("📊 Data Preview")
