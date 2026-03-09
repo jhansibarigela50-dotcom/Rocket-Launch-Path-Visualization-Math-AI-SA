@@ -67,20 +67,24 @@ if filtered_df.empty:
 # Visualizations
 # -------------------------------
 if not filtered_df.empty:
+    # 1. Payload vs Fuel Consumption
     if {"Payload Weight (tons)", "Fuel Consumption (tons)"} <= set(filtered_df.columns):
         st.subheader("1. Payload vs Fuel Consumption")
         fig1 = px.scatter(filtered_df, x="Payload Weight (tons)", y="Fuel Consumption (tons)",
                           color="Mission Success (%)" if "Mission Success (%)" in filtered_df.columns else None,
+                          hover_data=["Mission Name"] if "Mission Name" in filtered_df.columns else None,
                           title="Payload vs Fuel Consumption")
         st.plotly_chart(fig1)
 
+    # 2. Mission Cost: Success vs Failure
     if {"Mission Cost (billion USD)", "Mission Success (%)"} <= set(filtered_df.columns):
         st.subheader("2. Mission Cost: Success vs Failure")
         fig2, ax2 = plt.subplots()
-        sns.barplot(x="Mission Success (%)", y="Mission Cost (billion USD)", data=filtered_df, ax=ax2)
-        ax2.set_title("Mission Cost by Success Rate")
+        sns.boxplot(x="Mission Success (%)", y="Mission Cost (billion USD)", data=filtered_df, ax=ax2)
+        ax2.set_title("Mission Cost Distribution by Success Rate")
         st.pyplot(fig2)
 
+    # 3. Mission Duration vs Distance from Earth
     if {"Distance from Earth (light-years)", "Mission Duration (years)"} <= set(filtered_df.columns):
         st.subheader("3. Mission Duration vs Distance from Earth")
         fig3 = px.scatter(filtered_df,
@@ -88,10 +92,12 @@ if not filtered_df.empty:
                           y="Mission Duration (years)",
                           color="Mission Success (%)" if "Mission Success (%)" in filtered_df.columns else None,
                           size="Crew Size" if "Crew Size" in filtered_df.columns else None,
-                          hover_data=["Mission Name"] if "Mission Name" in filtered_df.columns else None,
+                          hover_data=["Mission Name", "Target Name"] if {"Mission Name","Target Name"} <= set(filtered_df.columns) else None,
+                          trendline="ols",
                           title="Mission Duration vs Distance from Earth")
         st.plotly_chart(fig3)
 
+    # 4. Crew Size vs Mission Success
     if {"Crew Size", "Mission Success (%)"} <= set(filtered_df.columns):
         st.subheader("4. Crew Size vs Mission Success")
         fig4, ax4 = plt.subplots()
@@ -99,19 +105,28 @@ if not filtered_df.empty:
         ax4.set_title("Crew Size vs Mission Success")
         st.pyplot(fig4)
 
+    # 5. Scientific Yield vs Mission Cost
     if {"Mission Cost (billion USD)", "Scientific Yield (points)"} <= set(filtered_df.columns):
         st.subheader("5. Scientific Yield vs Mission Cost")
         fig5 = px.scatter(filtered_df, x="Mission Cost (billion USD)", y="Scientific Yield (points)",
                           color="Mission Success (%)" if "Mission Success (%)" in filtered_df.columns else None,
+                          trendline="ols",
                           title="Scientific Yield vs Mission Cost")
         st.plotly_chart(fig5)
 
-# -------------------------------
-# Data Preview
-# -------------------------------
-st.subheader("📊 Data Preview")
-st.dataframe(filtered_df.head(20))
+    # 6. Correlation Heatmap
+    st.subheader("6. Correlation Heatmap")
+    numeric_cols = filtered_df.select_dtypes(include=["float64", "int64"]).columns
+    if len(numeric_cols) > 1:
+        corr = filtered_df[numeric_cols].corr()
+        fig6, ax6 = plt.subplots(figsize=(8,6))
+        sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax6)
+        ax6.set_title("Correlation Heatmap of Numeric Features")
+        st.pyplot(fig6)
+    else:
+        st.info("Not enough numeric data to compute correlations.")
 
+# -------------------------------
 # Data Preview
 # -------------------------------
 st.subheader("📊 Data Preview")
