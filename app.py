@@ -10,6 +10,7 @@ import plotly.express as px
 @st.cache_data
 def load_data():
     df = pd.read_csv("missions.csv")
+st.write("Available columns:", df.columns.tolist())
 
     # Show column names for debugging
     st.write("Columns in dataset:", df.columns.tolist())
